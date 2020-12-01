@@ -97,8 +97,8 @@ module.exports = function trimImage(filename, filenameOut, ...rest) {
         });
       }
 
-      savePixels(pixels.hi(cropData.right, cropData.bottom).lo(cropData.left, cropData.top), 'png').pipe(fs.createWriteStream(filenameOut));
-      cb(false);
+      savePixels(pixels.hi(cropData.right, cropData.bottom).lo(cropData.left, cropData.top), 'png').pipe(fs.createWriteStream(filenameOut))
+      .once('finish', ()=>cb(false));
     }
   });
 };
