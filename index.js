@@ -19,7 +19,7 @@ module.exports = function trimImage(filename, filenameOut, ...rest) {
 
   getPixels(filename, crop.type, (err, pixels) => {
     if (err) {
-      cb('Bad image path:', filename);
+      cb('Bad image path:' + filename);
       return;
     }
 
