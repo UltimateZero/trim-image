@@ -13,6 +13,7 @@ module.exports = function trimImage(filename, filenameOut, ...rest) {
       right: true,
       bottom: true,
       left: true,
+      asBuffer: false
     }, crop);
 
   getPixels(filename, (err, pixels) => {
@@ -89,16 +90,25 @@ module.exports = function trimImage(filename, filenameOut, ...rest) {
     if ((cropData.left > cropData.right) || (cropData.top > cropData.bottom)) {
       cb('Crop coordinates overflow:', filename);
     } else {
-      const dirname = path.dirname(filenameOut);
+      if(!crop.asBuffer) {
+        const dirname = path.dirname(filenameOut);
 
-      if (!fs.existsSync(dirname)) {
-        mkdirp(dirname, function (err) {
-          if (err) console.error(err);
-        });
+        if (!fs.existsSync(dirname)) {
+          mkdirp(dirname, function (err) {
+            if (err) console.error(err);
+          });
+        }
+
+        savePixels(pixels.hi(cropData.right, cropData.bottom).lo(cropData.left, cropData.top), 'png').pipe(fs.createWriteStream(filenameOut))
+        .once('finish', ()=>cb(false));
+      } else {
+        const bufs = [];
+        savePixels(pixels.hi(cropData.right, cropData.bottom).lo(cropData.left, cropData.top), 'png')
+        .on('data', (d)=>bufs.push(d))
+        .once('end', ()=>{
+          cb(false, Buffer.concat(bufs))
+        })
       }
-
-      savePixels(pixels.hi(cropData.right, cropData.bottom).lo(cropData.left, cropData.top), 'png').pipe(fs.createWriteStream(filenameOut))
-      .once('finish', ()=>cb(false));
     }
   });
 };
